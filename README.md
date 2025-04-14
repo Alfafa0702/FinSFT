@@ -17,52 +17,52 @@ kaggle datasets download yixinzhou2002/nlp-hw3-output 【用kaggle CLI下载zip�
 
 
 # 实验设计
-研究主题是微调一个熟悉各类金融知识的模型，使其能够回答金融考试选择题。
-数据处理：
-    转换为示例代码中的json格式，并划分训练集和测试集。
-    加入explaination的COT数据(dev训练集)
-    加入通用领域知识CHARM的选择题数据
-    prompt指令上的数据增强
-模型选择：
-    未微调的模型在测试集上的表现
-    微调的模型在测试集上的表现
-    Qwen2-7b-instruct
-    DeepSeek-R1-Distill-Qwen-7B (支持Q6_K和Q8_0量化模型，在中文语境和领域知识理解方面表现出色，适合处理中文文本)
-参数调优：
-    学习率 1e-5, 2e-7
-    训练轮数 5，1 应该是5更好
-    #batch size 16, 32 应该越xxxx，好像没有这个选择
-    #LoRA的rank 8 越低越好
-微调方法+Q：
-    #全参数微调
-    LoRA
-    #AdamW
-    #P-tuning
-实验结果
-    在测试集上的答题准确率+案例，准确率越高越好
-    Training loss收敛曲线
-    非金融通用问题的对话能力+案例
-    分析不同实验组件对模型性能的影响
-    点评模型回答是否遵照指令，即只输出选项答案
+研究主题是微调一个熟悉各类金融知识的模型，使其能够回答金融考试选择题。  
+数据处理：  
+    转换为示例代码中的json格式，并划分训练集和测试集。  
+    加入explaination的COT数据(dev训练集)  
+    加入通用领域知识CHARM的选择题数据  
+    prompt指令上的数据增强  
+模型选择：  
+    未微调的模型在测试集上的表现   
+    微调的模型在测试集上的表现  
+    Qwen2-7b-instruct  
+    DeepSeek-R1-Distill-Qwen-7B (支持Q6_K和Q8_0量化模型，在中文语境和领域知识理解方面表现出色，适合处理中文文本)  
+参数调优：  
+    学习率 1e-5, 2e-7   
+    训练轮数 5，1 应该是5更好  
+    #batch size 16, 32 应该越xxxx，好像没有这个选择  
+    #LoRA的rank 8 越低越好  
+微调方法+Q：  
+    #全参数微调  
+    LoRA  
+    #AdamW  
+    #P-tuning   
+实验结果  
+    在测试集上的答题准确率+案例，准确率越高越好  
+    Training loss收敛曲线  
+    非金融通用问题的对话能力+案例  
+    分析不同实验组件对模型性能的影响  
+    点评模型回答是否遵照指令，即只输出选项答案  
 
 # 目前完成的实验
-(1)Qwen/Qwen2-7B-Instruct QLoRA epoch=1 lr=2e-7 【pre eval 70.03% + SFT】
-(5) [version 18 NLP-hw3] Qwen/Qwen2-7b-Instruct QloRA epoch=1 lr=2e-7 【eval 81.23% 67.78%】[10m]
-(2)deepseek-ai/DeepSeek-R1-Distill-Qwen-7B QLoRA epoch=1 lr=2e-7 【pre eval 48.18%】[3h45m] [187/357出现了最终<\think>选答案]
-(4) [version 12] deepseek-ai/DeepSeek-R1-Distill-Qwen-7B QLoRA epoch=1 lr=2e-7 【SFT training】[1h25min]【用Transformer一张卡训练会内存不足，缺了1G】
-(3) [version 11] Qwen/Qwen2-7B-Instruct 用增加的数据集(常识+CoT) 【full SFT】【llamafactory Version11】 [1h17min]【用Transformer一张卡训练数据量增大后内存不够】 
-(8) [NLP-hw3]Qwen/Qwen2-7B-Instruct 用增加的数据集(常识+CoT) 【eval 80.39% 65.00%】
-(6) [version 8 Alfafa] Qwen2-7b-instruct QLoRA epoch=1 lr=1e-5 【SFT】[1h31m]
-(7) [version 13 llama] Qwen2-7b-instruct QLoRA epoch=5 lr=2e-7 【SFT】[6h18m]
+(1)Qwen/Qwen2-7B-Instruct QLoRA epoch=1 lr=2e-7 【pre eval 70.03% + SFT】  
+(5) [version 18 NLP-hw3] Qwen/Qwen2-7b-Instruct QloRA epoch=1 lr=2e-7 【eval 81.23% 67.78%】[10m]  
+(2)deepseek-ai/DeepSeek-R1-Distill-Qwen-7B QLoRA epoch=1 lr=2e-7 【pre eval 48.18%】[3h45m] [187/357出现了最终<\think>选答案]  
+(4) [version 12] deepseek-ai/DeepSeek-R1-Distill-Qwen-7B QLoRA epoch=1 lr=2e-7 【SFT training】[1h25min]【用Transformer一张卡训练会内存不足，缺了1G】  
+(3) [version 11] Qwen/Qwen2-7B-Instruct 用增加的数据集(常识+CoT) 【full SFT】【llamafactory Version11】 [1h17min]【用Transformer一张卡训练数据量增大后内存不够】   
+(8) [NLP-hw3]Qwen/Qwen2-7B-Instruct 用增加的数据集(常识+CoT) 【eval 80.39% 65.00%】  
+(6) [version 8 Alfafa] Qwen2-7b-instruct QLoRA epoch=1 lr=1e-5 【SFT】[1h31m]  
+(7) [version 13 llama] Qwen2-7b-instruct QLoRA epoch=5 lr=2e-7 【SFT】[6h18m]  
 
 # 正在跑的实验
 
-deepseek-ai/DeepSeek-R1-Distill-Qwen-7B QLoRA epoch=1 lr=2e-7 【Eval】
+deepseek-ai/DeepSeek-R1-Distill-Qwen-7B QLoRA epoch=1 lr=2e-7 【Eval】  
 
 # 未来要做的实验
-DeepSeek-R1-Distill-Qwen-7B QLoRA epoch=1 lr=2e-7 发现无法避免冗长的推理过程，更改了prompt和max_length=512
-Qwen2-7b-instruct QLoRA epoch=5 lr=2e-7 【Eval】
-Qwen2-7b-instruct QLoRA epoch=1 lr=1e-5 【Eval】
+DeepSeek-R1-Distill-Qwen-7B QLoRA epoch=1 lr=2e-7 发现无法避免冗长的推理过程，更改了prompt和max_length=512  
+Qwen2-7b-instruct QLoRA epoch=5 lr=2e-7 【Eval】  
+Qwen2-7b-instruct QLoRA epoch=1 lr=1e-5 【Eval】  
 用trainer_state.json中的log_history绘制loss曲线
 非金融通用问题的对话能力+案例
 

@@ -49,7 +49,8 @@ kaggle datasets download yixinzhou2002/nlp-hw3-output
 1. **基础模型**
    - Qwen2-7b-instruct
    - DeepSeek-R1-Distill-Qwen-7B
-   - Qwen2-7b-instruct已经采用通用数据集微调过的，能够适应问答题的指令。- DeepSeek-R1-Distill-Qwen-7B利用了从DeepSeek生成的中文推理数据集对Qwen-7B进行微调，具备了推理能力，在中文语境和领域知识理解方面具有出色表现。这样的对比实验可以研究，在处理中文文本的金融考试题目方面，推理大模型与指令大模型的表现。
+   - Qwen2-7b-instruct已经采用通用数据集微调过的，能够适应问答题的指令。
+   - DeepSeek-R1-Distill-Qwen-7B利用了从DeepSeek生成的中文推理数据集对Qwen-7B进行微调，具备了推理能力，在中文语境和领域知识理解方面具有出色表现。这样的对比实验可以研究，在处理中文文本的金融考试题目方面，推理大模型与指令大模型的表现。
 
 2. **评估维度**
    - 未微调模型基准性能

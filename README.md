@@ -1,5 +1,16 @@
-# 下载数据
+# 金融领域大语言模型微调实验报告
+
+## 目录
+- [数据准备](#数据准备)
+- [实验设计](#实验设计)
+- [实验结果](#实验结果)
+- [结论](#结论)
+
+## 数据准备
+
+### 数据集获取
 ```bash
+# 1. 下载 FinEval 数据集
 mkdir financial_evaluation_dataset
 cd financial_evaluation_dataset
 git init
@@ -8,85 +19,110 @@ git config core.sparseCheckout true
 echo "data/Ant/金融知识/" >> .git/info/sparse-checkout
 echo "data/SUFE/" >> .git/info/sparse-checkout
 git pull origin main
+
+# 2. 下载 Kaggle 数据集的方法
+# 配置 Kaggle API：https://www.kaggle.com/docs/api#authentication
+# 使用 kaggle CLI 下载 zip
+kaggle datasets download yixinzhou2002/nlp-hw3-output
 ```
-然后提交到kaggle dataset，作为input add到notebook中。
+然后提交到 kaggle dataset，作为 input add 到 notebook 中。
 
-## 下载kaggle dataset
-配置kaggle API：https://www.kaggle.com/docs/api#authentication  
-kaggle datasets download yixinzhou2002/nlp-hw3-output 【用kaggle CLI下载zip】
+## 实验设计
 
+### 研究目标
+本实验旨在微调一个熟悉各类金融知识的模型，使其能够准确回答金融考试选择题。通过探索不同模型、微调方法及参数设置，优化模型在金融领域的表现。
 
-# 实验设计
-研究主题是微调一个熟悉各类金融知识的模型，使其能够回答金融考试选择题。  
-数据处理：  
-    转换为示例代码中的json格式，并划分训练集和测试集。  
-    加入explaination的COT数据(dev训练集)  
-    加入通用领域知识CHARM的选择题数据  
-    prompt指令上的数据增强  
-模型选择：  
-    未微调的模型在测试集上的表现   
-    微调的模型在测试集上的表现  
-    Qwen2-7b-instruct  
-    DeepSeek-R1-Distill-Qwen-7B (支持Q6_K和Q8_0量化模型，在中文语境和领域知识理解方面表现出色，适合处理中文文本)  
-参数调优：  
-    学习率 1e-5, 2e-7   
-    训练轮数 5，1 应该是5更好  
-    #batch size 16, 32 应该越xxxx，好像没有这个选择  
-    #LoRA的rank 8 越低越好  
-微调方法+Q：  
-    #全参数微调  
-    LoRA  
-    #AdamW  
-    #P-tuning   
-实验结果  
-    在测试集上的答题准确率+案例，准确率越高越好  
-    Training loss收敛曲线  
-    非金融通用问题的对话能力+案例  
-    分析不同实验组件对模型性能的影响  
-    点评模型回答是否遵照指令，即只输出选项答案  
+### 数据来源
+数据是Ant和SUFE联合制作的FinEval，通过长期客观调研总结和严格的人工筛选，利用多项选择题、主客观简答题、推理规划和检索问答等8351道多种与实际应用场景高度一致的题型，包括了金融学术知识、金融行业知识、金融安全知识以及金融智能体。目前开源数据集是金融学术知识。FinEval金融学术知识是包含高质量多项选择题的集合，涵盖金融、经济、会计和证书等领域。它包括1321条有答案的训练集，涵盖了34个不同的学术科目。相比作业提供的link，我找到了原仓库，加入了Ant制作的中文题，变成1781题，并且SUFE的dev文件夹中含有cot的少量dev数据，每个subject有5条含有cot的回答。同时，通用知识题目我选择了CHARM，覆盖了中国文化知识。
 
-# 目前完成的实验
-(1)Qwen/Qwen2-7B-Instruct QLoRA epoch=1 lr=2e-7 【pre eval 70.03% + SFT】  
-(5) [version 18 NLP-hw3] Qwen/Qwen2-7b-Instruct QloRA epoch=1 lr=2e-7 【eval 81.23% 67.78%】[10m]  
-(2)deepseek-ai/DeepSeek-R1-Distill-Qwen-7B QLoRA epoch=1 lr=2e-7 【pre eval 48.18%】[3h45m] [187/357出现了最终<\think>选答案]  
-(4) [version 12] deepseek-ai/DeepSeek-R1-Distill-Qwen-7B QLoRA epoch=1 lr=2e-7 【SFT training】[1h25min]【用Transformer一张卡训练会内存不足，缺了1G】  
-(3) [version 11] Qwen/Qwen2-7B-Instruct 用增加的数据集(常识+CoT) 【full SFT】【llamafactory Version11】 [1h17min]【用Transformer一张卡训练数据量增大后内存不够】   
-(8) [NLP-hw3]Qwen/Qwen2-7B-Instruct 用增加的数据集(常识+CoT) 【eval 80.39% 65.00%】  
-(6) [version 8 Alfafa] Qwen2-7b-instruct QLoRA epoch=1 lr=1e-5 【SFT】[1h31m]  
-(7) [version 13 llama] Qwen2-7b-instruct QLoRA epoch=5 lr=2e-7 【SFT】[6h18m]  
+### 数据处理
+1. **数据格式转换**
+   - 将原始数据转换为 ShareGPT 格式的 JSON 文件
+   - 划分训练集和测试集
 
-# 正在跑的实验
+2. **数据增强**
+   - 加入 COT（Chain of Thought）解释数据，从FinEval的dev数据集中获得
+   - 整合 CHARM 通用领域知识，维持领域数据与通用数据的平衡
+   - 优化 prompt 指令表述
 
-deepseek-ai/DeepSeek-R1-Distill-Qwen-7B QLoRA epoch=1 lr=2e-7 【Eval】  
+### 模型选择
+1. **基础模型**
+   - Qwen2-7b-instruct
+   - DeepSeek-R1-Distill-Qwen-7B
+   - Qwen2-7b-instruct已经采用通用数据集微调过的，能够适应问答题的指令。- DeepSeek-R1-Distill-Qwen-7B利用了从DeepSeek生成的中文推理数据集对Qwen-7B进行微调，具备了推理能力，在中文语境和领域知识理解方面具有出色表现。这样的对比实验可以研究，在处理中文文本的金融考试题目方面，推理大模型与指令大模型的表现。
 
-# 未来要做的实验
-DeepSeek-R1-Distill-Qwen-7B QLoRA epoch=1 lr=2e-7 发现无法避免冗长的推理过程，更改了prompt和max_length=512  
-Qwen2-7b-instruct QLoRA epoch=5 lr=2e-7 【Eval】  
-Qwen2-7b-instruct QLoRA epoch=1 lr=1e-5 【Eval】  
-用trainer_state.json中的log_history绘制loss曲线
-非金融通用问题的对话能力+案例
+2. **评估维度**
+   - 未微调模型基准性能
+   - 微调后模型性能提升
 
+### 参数配置
+| 参数类型 | 配置选项 | 说明 |
+|---------|---------|------|
+| 学习率 | 1e-5, 2e-7 | 影响模型参数更新步长 |
+| 训练轮数 | 1, 5 | 5轮预期效果更好 |
+| LoRA rank | 8 | 固定参数 |
 
-# 引言
-随着金融行业的发展和金融知识的广泛应用，能够准确回答金融考试选择题的智能模型具有重要意义。本实验旨在通过对特定模型进行微调，使其在金融考试选择题回答任务上表现优异，同时探索不同模型、微调方法及参数设置对模型性能的影响。
+### 微调方法
+- **主要方法**：QLoRA（Quantized Low-Rank Adaptation）
+  - 基于8bit量化模型
+  - 使用低秩矩阵调整参数
+  - 降低计算量和内存需求
 
-# Experiment design
-（一）数据来源与数据处理
-数据是Ant和SUFE联合制作的FinEval，通过长期客观调研总结和严格的人工筛选，利用多项选择题、主客观简答题、推理规划和检索问答等8351道多种与实际应用场景高度一致的题型，包括了金融学术知识、金融行业知识、金融安全知识以及金融智能体。目前开源数据集是金融学术知识。FinEval金融学术知识是包含高质量多项选择题的集合，涵盖金融、经济、会计和证书等领域。它包括1321条有答案的训练集，涵盖了34个不同的学术科目。相比作业提供的link，我找到了原仓库，加入了Ant制作的中文题，变成1781题，并且SUFE的dev文件夹中含有cot的少量dev数据，每个subject有5条含有cot的回答。同时，通用知识题目我选择了CHARM，覆盖了。。。
+## 实验结果
 
-格式转换与数据集划分：将原始数据转换为特定的sharegpt formating的JSON文件，以便模型处理。并将数据集划分为训练集和测试集，确保训练和评估过程的独立性和有效性。
-COT 数据集成：在 dev 训练集中加入带有解释（explaination）的 COT 数据，期望通过这些解释性信息帮助模型更好地理解问题解决逻辑，提升答题能力。
-CHARM 数据引入：纳入通用领域知识 CHARM 的选择题数据，维持领域数据与通用数据的平衡，以确保模型在保持通用性的同时，具备领域特定能力。
-数据增强：在 prompt 指令上进行数据增强，通过多样化的指令表述方式，使模型对各种提问形式更加鲁棒，提高模型在实际应用中的适应性。
+### 已完成实验概览
+| 实验ID | 模型 | 数据集 | Epoch | 学习率 | 训练时长 | 最后loss | 金融准确率(SFT前) |金融准确率(SFT后) | CHARM准确率(SFT后) |
+|--------|------|--------|--------|--------|---------|-----------|------------|-------------||-------------|
+| 1 | Qwen2-7b-instruct | fineval | 1 | 2e-7 | 1h | 5.805 | 70.03% | 81.23% | 67.78% |
+| 2 | Qwen2-7b-instruct | fineval+cot+charm | 1 | 2e-7 | 1h12m | 14.141 | 70.03% | 80.39% | 65.00% |
+| 3 | Qwen2-7b-instruct | fineval+cot+charm | 5 | 2e-7 | 6h12m | 13.457 | 70.03% | 81.23% | 65.00% |
+| 4 | Qwen2-7b-instruct | fineval+cot+charm | 1 | 1e-5 | 1h26m | 8.408 | 70.03% | 85.46% | 68.33% |
+| 5 | DeepSeek-R1-Distill-Qwen-7B | fineval | 1 | 2e-7 | 1h21m | 17.997 | 48.18% | 48.79% | 32.78% |
 
-Instruct模型可能是通用数据微调过的能够适应问答模式
+### 模型响应分析
 
+#### Qwen2-7b-instruct 表现
+- 金融数据集：直接输出选项字母
+- CHARM数据集：偶有格式不规范问题
 
-# Code implementation
-Present your code implementation, demonstrating how you translated your ideas into code.
+#### DeepSeek 表现
+- 推理过程冗长
+- 难以严格遵循指令要求
+- 受token限制影响较大
+- 把答案写在`</think>`后面
 
-# Result analysis
-Collect and present the results obtained from your experiments, along with an analysis of the insights gained.
+### 性能影响因素分析
 
-# Conclusion
-Conclude your report by summarizing the key findings and outcomes of your research.
+1. **模型架构影响**
+   - Qwen2-7b-instruct 展现出更好的指令遵循能力
+   - DeepSeek 在推理能力与指令遵从间存在权衡
+
+2. **训练参数影响**
+   - Epoch增加：性能小幅提升，loss下降趋势明显
+   - 学习率调整：较大学习率有助于降低loss
+
+3. **数据增强效果**
+   - COT数据加入效果不明显
+   - 通用知识整合优势未充分体现
+
+## 结论
+
+### 主要发现
+1. 模型选择方面：
+   - Qwen2-7b-instruct 表现最优（最高达85.46%）
+   - DeepSeek 在指令遵循方面存在挑战
+
+2. 参数优化方面：
+   - 更多训练轮次有助于提升性能
+   - 较大学习率可能带来更好效果
+
+### 未来展望
+1. 优化方向：
+   - 改进模型选择策略
+   - 平衡推理与指令遵循能力
+   - 深入探索数据增强方法
+
+2. 潜在改进：
+   - 优化prompt工程
+   - 探索混合训练策略
+   - 改进评估方法
